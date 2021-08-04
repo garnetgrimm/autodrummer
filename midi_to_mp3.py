@@ -9,7 +9,7 @@ fs = FluidSynth('sf2.sf2')
 inDir = "samples"
 outDir = "output"
 
-for f in glob.glob(inDir + '/**/*.mid', recursive=True):
+def midi_to_mp3(f):
     filename = os.path.basename(f)
     outPath = outDir + f[len(inDir):-len(filename)]
     Path(outPath).mkdir(parents=True, exist_ok=True)
@@ -18,3 +18,7 @@ for f in glob.glob(inDir + '/**/*.mid', recursive=True):
     fs.midi_to_audio(f, wavFile)
     subprocess.run(["ffmpeg", "-y", "-i", wavFile, "-acodec", "libmp3lame", mp3File])
     os.remove(wavFile)
+
+for f in glob.glob(inDir + '/**/*.mid', recursive=True):
+    midi_to_mp3(f)
+#midi_to_mp3("test.mid")

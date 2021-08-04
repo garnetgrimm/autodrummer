@@ -32,22 +32,31 @@ def midiToSpec(inDir, inFile, xLen):
         deltaTime = msg.time
         if not msg.is_meta:
             for i in range(int((currTime/totalTime) * xLen), xLen):
-                spectrogram[msg.note][i] = msg.velocity
+                spectrogram[msg.note][i] = (msg.velocity/127)*255
         currTime += deltaTime
     print(type(spectrogram))
     print(spectrogram.shape)
     return spectrogram
 
+
+from PIL import Image as im
 def drawSpec(inDir, inFile):
     frequencies, times, spectrogram = mp3toSpec(inDir, inFile, 44100)
     midigram = midiToSpec(inDir, inFile, times.shape[0])
     midis = np.array([i for i in range(127)])
-    plt.pcolormesh(times, frequencies, spectrogram)
-    plt.pcolormesh(times, midis, midigram)
-    plt.imshow(spectrogram)
-    plt.imshow(midigram, alpha=0.5)
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-    plt.show()
+    
+    ramp_n = 0.5
+    spectrogram = np.power(spectrogram, 1 - ramp_n)
+    spectrogram = np.multiply(spectrogram, pow(255.0, ramp_n))
+    spectrogram = spectrogram.astype(np.uint8)
+    print(spectrogram)
+    midigram = midigram.astype(np.uint8)
+
+    specImage = im.fromarray(spectrogram)
+    specImage.convert("L")
+    specImage.save('spectrogram.png')
+    midiImage = im.fromarray(midigram)
+    midiImage.convert("L")
+    midiImage.save('midigram.png')
     
 drawSpec('Classic Rock\\Song 03 146 Jail Breakin\\Grooves\\', '146 S03 Chorus Live 1')
