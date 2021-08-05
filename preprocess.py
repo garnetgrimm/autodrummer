@@ -87,7 +87,7 @@ def drawSplitSpec(midiFile, mp3File):
         fileDir = os.path.join(specDir, str(note))
         Path(fileDir).mkdir(parents=True, exist_ok=True)
         for n in range(slice.shape[1]-1):
-            filename = os.path.join(fileDir, str(note) + "_image_" + str(fileHash) + "_" + str(i) + "_" + str(n) + ".png")
+            filename = os.path.join(fileDir, str(note) + "_image_" + str(fileHash) + "_" + str(i) + "_" + str(n) + ".jpg")
             arrayToImage(slice[:,n:n+1], filename)
 
 for midiFile in glob.glob(midiDir + '/**/*.mid', recursive=True):
