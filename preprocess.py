@@ -11,7 +11,6 @@ from midi2audio import FluidSynth
 import glob
 
 sampleDir = "output"
-specDir =  os.path.join(sampleDir, "specs")
 midiDir = "midi"
 
 fs = FluidSynth('sf2.sf2')
@@ -35,7 +34,7 @@ def mp3toSpec(mp3File, sampleRate):
     return spectrogram
 
 def midiToSpec(midiFile, xLen):
-    midi = MidiFile(midiFile, clip=True)
+    midi = MidiFile(midiFile)
     spectrogram = np.zeros((127, xLen))
     currTime = 0
     totalTime = 0
@@ -61,7 +60,7 @@ def drawSpec(inDir, inFile):
     arrayToImage(spectrogram, os.path.join(sampleDir, inDir, inFile, "spectrogram.png"))
     arrayToImage(midigram, os.path.join(sampleDir, inDir, inFile, "midigram.png"))
 
-def drawSplitSpec(midiFile, mp3File):
+def drawSplitSpec(midiFile, mp3File, specDir, seperate=True, formatString="{note}_image_{fileHash}_{i}_{n}_.jpg"):
     sampleRate = 44100
     spectrogram = mp3toSpec(mp3File, sampleRate)
     midigram = midiToSpec(midiFile, spectrogram.shape[1])    
@@ -84,15 +83,20 @@ def drawSplitSpec(midiFile, mp3File):
     for i, slice in enumerate(slices):
         note = slice[0]
         slice = slice[1]
-        fileDir = os.path.join(specDir, str(note))
+        if(seperate):
+            fileDir = os.path.join(specDir, str(note))
+        else:
+            fileDir = specDir
         Path(fileDir).mkdir(parents=True, exist_ok=True)
         for n in range(slice.shape[1]-1):
-            filename = os.path.join(fileDir, str(note) + "_image_" + str(fileHash) + "_" + str(i) + "_" + str(n) + ".jpg")
+            basename = formatString.format(fileHash=fileHash, i=i, n=n, note=note)
+            filename = os.path.join(fileDir, basename)
             arrayToImage(slice[:,n:n+1], filename)
 
-for midiFile in glob.glob(midiDir + '/**/*.mid', recursive=True):
-    outPath = sampleDir + midiFile[len(midiDir):-4]
-    Path(outPath).mkdir(parents=True, exist_ok=True)
-    mp3File = os.path.join(outPath, "sample.mp3")
-    midi_to_mp3(midiFile, mp3File)
-    drawSplitSpec(midiFile, mp3File)
+if __name__ == "__main__":
+    for midiFile in glob.glob(midiDir + '/**/*.mid', recursive=True):
+        outPath = sampleDir + midiFile[len(midiDir):-4]
+        Path(outPath).mkdir(parents=True, exist_ok=True)
+        mp3File = os.path.join(outPath, "sample.mp3")
+        midi_to_mp3(midiFile, mp3File)
+        drawSplitSpec(midiFile, mp3File, os.path.join(sampleDir, "specs"))
